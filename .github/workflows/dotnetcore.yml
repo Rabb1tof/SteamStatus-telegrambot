@@ -19,4 +19,4 @@ jobs:
       with:
         dotnet-version: 3.1.100
     - name: Build
-      run: dotnet build --configuration Release "./SteamStatus/SteamStatusBot.sln"
+      run: dotnet build --configuration Release "./SteamStatusBot/SteamStatusBot.sln"
