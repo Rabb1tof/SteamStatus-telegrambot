@@ -1,4 +1,5 @@
 ﻿using BotFramework.Attributes;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -16,20 +17,34 @@ namespace SteamStatusBot.SteamStats
     {
         Json GetStatus();
     }
-    public class Client : IClient
+    public class Client : IClient, IHostedService, IDisposable
     {
         protected Timer Timer;
         public Json json;
 
-        public Client()
+        /*public Client()
         {
             Timer = new Timer(_UpdateTimer, null, TimeSpan.Zero, TimeSpan.FromSeconds(45));
             Update().GetAwaiter().GetResult();
-        }
+        }*/
 
-        ~Client()
+        /*~Client()
         {
             Timer.Dispose();
+        }*/
+
+        public async Task StartAsync(CancellationToken stoppingToken)
+        {
+            Timer = new Timer(_UpdateTimer, null, TimeSpan.Zero,
+                TimeSpan.FromSeconds(45));
+            await Update();
+        }
+
+        public Task StopAsync(CancellationToken stoppingToken)
+        {
+            Timer?.Change(Timeout.Infinite, 0);
+
+            return Task.CompletedTask;
         }
 
         public async Task<Json> GetAsync()
@@ -62,6 +77,11 @@ namespace SteamStatusBot.SteamStats
         public Json GetStatus()
         {
             return json;
+        }
+
+        public void Dispose()
+        {
+            Timer?.Dispose();
         }
     }
 }
