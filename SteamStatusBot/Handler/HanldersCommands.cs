@@ -7,17 +7,19 @@ using SteamStatusBot.SteamStats;
 using BotFramework.Attributes;
 using BotFramework.Setup;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.DependencyInjection;
+using SteamStatusBot.Database;
 
 namespace SteamStatusBot.Handler
 {
     public class HanldersCommands : BotEventHandler
     {
         public IClient client;
-        public ConcurrentBag<long> bag;
+        protected readonly DatabaseContext _dbContext;
 
-        public HanldersCommands(IClient client, ConcurrentBag<long> bag)
+        public HanldersCommands(IClient client, DatabaseContext dbContext)
         {
-            this.bag = bag;
+            _dbContext = dbContext;
             this.client = client;
         }
 
@@ -25,10 +27,16 @@ namespace SteamStatusBot.Handler
         public async Task SendStatus()
         {
             Console.WriteLine("Client used command 'status'");
-            Json json = client.GetStatus();
+            var json = client.GetJson();
             if (json == null) Console.WriteLine("FAILED");
-            bag.Add(Chat.Id);
-            await Bot.SendTextMessageAsync(Chat, $"Steam Connection Manager: `{json.Services.Where(p => (string)p[0] == "cms").Select(p => p[2]).FirstOrDefault()}`", ParseMode.Markdown);
+
+            if (!_dbContext.Users.Any(x => x.ChatId == Chat.Id))
+                _dbContext.Users.Add(new BotData() {ChatId = Chat.Id});
+
+            await _dbContext.SaveChangesAsync();
+            await Bot.SendTextMessageAsync(Chat, 
+                $"Steam Connection Manager: `{json.Services.Where(p => (string)p[0] == "cms").Select(p => p[2]).FirstOrDefault()}`", 
+                        ParseMode.Markdown);
         }
     }
 }

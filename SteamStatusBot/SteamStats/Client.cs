@@ -12,6 +12,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using SteamStatusBot.Database;
 using Telegram.Bot;
 using Telegram.Bot.Types.Enums;
 using Timer = System.Threading.Timer;
@@ -20,25 +22,26 @@ namespace SteamStatusBot.SteamStats
 {
     public interface IClient
     {
-        Json GetStatus();
+        Json GetJson();
     }
     public class Client : IClient, IHostedService, IDisposable
     {
         protected Timer Timer;
         public Json json;
+        protected readonly IServiceScopeFactory _scopeFactory;
         protected readonly ITelegramBot _bot;
-        public ConcurrentBag<long> _bag;
+        public string cms;
 
-        public Client(ITelegramBot bot, ConcurrentBag<long> bag)
+        public Client(ITelegramBot bot, IServiceScopeFactory scopeFactory)
         {
-            _bag = bag;
+            _scopeFactory = scopeFactory;
             _bot = bot;
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
         {
             Timer = new Timer(_UpdateTimer, null, TimeSpan.Zero,
-                TimeSpan.FromSeconds(45));
+                TimeSpan.FromSeconds(60));
             await Update();
         }
 
@@ -69,19 +72,34 @@ namespace SteamStatusBot.SteamStats
         public async Task Update()
         {
             var data = await GetAsync();
-            if (json != null && json.Online < 75 && data.Online >= 75)
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+            if (json != null)
             {
-                // SendMessage (Steam is back)
-                foreach (var i in _bag)
+                
+                cms = $"Steam Connection Manager: `{json.Services.Where(p => (string) p[0] == "cms").Select(p => p[2]).FirstOrDefault()}`";
+                if (json.Online < 75 && data.Online >= 75)
                 {
-                    await _bot.BotClient.SendTextMessageAsync(i, "Test", ParseMode.Markdown);
+                    // SendMessage (Steam is back)
+                    
+
+                    foreach (var i in dbContext.Users)
+                    {
+                        await _bot.BotClient.SendTextMessageAsync(i.ChatId, cms, ParseMode.Markdown);
+                    }
+
+                    //_bot.BotClient.SendTextMessageAsync(new BotData().ChatId);
                 }
-                //_bot.BotClient.SendTextMessageAsync(new BotData().ChatId);
+            } else if (data != null && json == null) {
+                foreach (var i in dbContext.Users)
+                {
+                    await _bot.BotClient.SendTextMessageAsync(i.ChatId, "JSON Service is *back* or bot has *reloaded*!", ParseMode.Markdown);
+                }
             }
             json = data;
         }
 
-        public Json GetStatus()
+        public Json GetJson()
         {
             return json;
         }
