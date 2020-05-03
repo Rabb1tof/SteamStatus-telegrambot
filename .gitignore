@@ -216,3 +216,5 @@ src/Telegram.Bot.Documentation/
 
 # VS Code
 .vscode/
+
+*/appsettings.json
