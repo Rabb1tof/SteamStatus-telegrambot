@@ -22,7 +22,8 @@ namespace SteamStatusBot
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTelegramBot();
-            services.AddHostedService<Client>();
+            services.AddSingleton<IClient, Client>();
+            services.AddTransient<IHostedService>(x => (Client)x.GetService<IClient>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

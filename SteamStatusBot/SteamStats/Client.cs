@@ -22,17 +22,6 @@ namespace SteamStatusBot.SteamStats
         protected Timer Timer;
         public Json json;
 
-        /*public Client()
-        {
-            Timer = new Timer(_UpdateTimer, null, TimeSpan.Zero, TimeSpan.FromSeconds(45));
-            Update().GetAwaiter().GetResult();
-        }*/
-
-        /*~Client()
-        {
-            Timer.Dispose();
-        }*/
-
         public async Task StartAsync(CancellationToken stoppingToken)
         {
             Timer = new Timer(_UpdateTimer, null, TimeSpan.Zero,

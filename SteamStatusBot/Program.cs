@@ -25,9 +25,5 @@ namespace SteamStatusBot
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-                /*.ConfigureServices(services =>
-                {
-                    services.AddHostedService<Client>();
-                });*/
     }
 }
