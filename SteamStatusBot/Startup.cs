@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using SteamStatusBot.Extension;
+using SteamStatusBot.Handler;
 using SteamStatusBot.SteamStats;
 
 namespace SteamStatusBot
@@ -22,6 +24,7 @@ namespace SteamStatusBot
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTelegramBot();
+            services.AddBag<long>();
             services.AddSingleton<IClient, Client>();
             services.AddTransient<IHostedService>(x => (Client)x.GetService<IClient>());
         }

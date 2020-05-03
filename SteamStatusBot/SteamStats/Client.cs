@@ -1,7 +1,10 @@
-﻿using BotFramework.Attributes;
+﻿using BotFramework;
+using BotFramework.Attributes;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
+using SteamStatusBot.Handler;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -9,6 +12,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types.Enums;
 using Timer = System.Threading.Timer;
 
 namespace SteamStatusBot.SteamStats
@@ -21,6 +26,14 @@ namespace SteamStatusBot.SteamStats
     {
         protected Timer Timer;
         public Json json;
+        protected readonly ITelegramBot _bot;
+        public ConcurrentBag<long> _bag;
+
+        public Client(ITelegramBot bot, ConcurrentBag<long> bag)
+        {
+            _bag = bag;
+            _bot = bot;
+        }
 
         public async Task StartAsync(CancellationToken stoppingToken)
         {
@@ -59,6 +72,11 @@ namespace SteamStatusBot.SteamStats
             if (json != null && json.Online < 75 && data.Online >= 75)
             {
                 // SendMessage (Steam is back)
+                foreach (var i in _bag)
+                {
+                    await _bot.BotClient.SendTextMessageAsync(i, "Test", ParseMode.Markdown);
+                }
+                //_bot.BotClient.SendTextMessageAsync(new BotData().ChatId);
             }
             json = data;
         }
