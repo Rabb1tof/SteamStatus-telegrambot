@@ -8,6 +8,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using SteamStatusBot.SteamStats;
 using BotFramework.Attributes;
+using BotFramework.Setup;
 
 namespace SteamStatusBot.Handler
 {
@@ -20,7 +21,7 @@ namespace SteamStatusBot.Handler
             this.client = client;
         }
 
-        [Command("status")]
+        [Command(InChat.All, "status", CommandParseMode.Both)]
         public async Task SendStatus()
         {
             Console.WriteLine("Client used command 'status'");
