@@ -217,4 +217,4 @@ src/Telegram.Bot.Documentation/
 # VS Code
 .vscode/
 
-SteamStatusBot/appsettings.json 
+appsettings.json
